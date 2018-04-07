@@ -3,8 +3,8 @@ var VERSION = '2.7.7';
 
 (function () {
 
-    var gameWidth = 800;
-    var gameHeight = 600;
+    var gameWidth = 1024;
+    var gameHeight = 720;
 
     var game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, 'phaser-example', {
         preload: preload,
@@ -20,12 +20,16 @@ var VERSION = '2.7.7';
         game.load.image('carStanding', 'assets/games/cowcar/icons/car_standing.png');
         game.load.spritesheet('kaboom', 'assets/games/invaders/explode.png', 128, 128);
         game.load.image('background', 'assets/games/cowcar/textures/grass.jpg');
+        game.load.image('sand', 'assets/games/cowcar/textures/sand.jpg');
         game.load.image('road', 'assets/games/cowcar/textures/asphalt.png');
         game.load.image('grass', 'assets/games/cowcar/icons/grass.png');
         game.load.spritesheet('cow', 'assets/games/cowcar/icons/cow.png', 40, 80);
         game.load.spritesheet('cowStanding', 'assets/games/cowcar/icons/cow_standing.png', 75, 50);
         game.load.spritesheet('turningEffect', 'assets/games/cowcar/icons/effect.png', 256, 256);
         game.load.spritesheet('speedUpEffect', 'assets/games/cowcar/icons/speedup_effect.png', 109, 104);
+        game.load.spritesheet('bitcoin', 'assets/games/cowcar/icons/bitcoin.png', 79, 79);
+        game.load.spritesheet('camel', 'assets/games/cowcar/icons/camel.png', 30, 75);
+        game.load.spritesheet('camelStanding', 'assets/games/cowcar/icons/camel_standing.png', 78, 53);
     }
 
     var road = {
@@ -52,7 +56,9 @@ var VERSION = '2.7.7';
 
     var speedString;
     var speedText;
-
+    var bitcoinString;
+    var bitcoinText;
+    var bitcoins = 0;
     var player;
     var cursors;
     var background;
@@ -81,25 +87,36 @@ var VERSION = '2.7.7';
             texture: 'road',
             speedCoefficients: {
                 'car': 1.5,
-                'cow': 0.8
+                'cow': 0.5,
+                'camel': 0.5
             }
         },
         'grass': {
             texture: 'background',
             speedCoefficients: {
-                'car': 0.2,
-                'cow': 1
+                'car': 0.5,
+                'cow': 1,
+                'camel': 0.7
+            }
+        },
+        'sand': {
+            texture: 'sand',
+            speedCoefficients: {
+                'car': 0.5,
+                'cow': 0.5,
+                'camel': 1.2
             }
         }
     };
-    const terrainsArray = ['asphalt', 'grass'];
-    let currentTerrain = terrainsArray[0];
+    const terrainsArray = ['asphalt', 'grass', 'sand'];
+    let nextTerrain = terrainsArray[0];
+    let currentTerrain = terrainsArray[1];
 
     function create() {
 
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
-        background = game.add.tileSprite(0, 0, 800, 600, 'background');
+        background = game.add.tileSprite(0, 0, gameWidth, gameHeight, 'background');
 
         terrainsArray.forEach(id => {
             const terrain = terrains[id];
@@ -131,7 +148,13 @@ var VERSION = '2.7.7';
         roadBorders.setAll('outOfBoundsKill', true);
         roadBorders.setAll('checkWorldBounds', true);
 
-        roadObjects = [new Cow(), new Car(), new Grass()];
+        roadObjects = [
+            new Cow(),
+            new Car(),
+            new Camel(),
+            new Grass(),
+            new Bitcoin()
+        ];
         roadObjects.forEach(c => {
             c.init(game);
         });
@@ -146,10 +169,13 @@ var VERSION = '2.7.7';
         scoreText = game.add.text(10, 10, scoreString + score, {font: '34px Arial', fill: '#fff'});
 
         timeString = 'Осталось: ';
-        timeText = game.add.text(550, 10, timeString + timeLeft + ' с', {font: '34px Arial', fill: '#fff'});
+        timeText = game.add.text(gameWidth - 275, 10, timeString + timeLeft + ' с', {font: '34px Arial', fill: '#fff', align: 'right'});
 
         speedString = 'Скорость: ';
-        speedText = game.add.text(10, 550, speedString + playerSpeed.current, {font: '34px Arial', fill: '#fff'});
+        speedText = game.add.text(10, gameHeight - 50, speedString + playerSpeed.current, {font: '34px Arial', fill: '#fff'});
+
+        bitcoinString = ' BTC';
+        bitcoinText = game.add.text(gameWidth - 250, gameHeight - 50, '', {font: '34px Arial', fill: '#fff', align: 'right'});
 
         stateText = game.add.text(game.world.centerX, game.world.centerY, '', {
             font: '84px Arial',
@@ -235,7 +261,7 @@ var VERSION = '2.7.7';
             }
 
             if (game.time.now > changeTerrainTimer) {
-                changeTerrain();
+                changeNextTerrain();
             }
 
             if (game.time.now > addSpeedTimer) {
@@ -257,9 +283,17 @@ var VERSION = '2.7.7';
 
 
             }, null, this));
+
+            terrainsArray.map(t => terrains[t]).forEach(c => game.physics.arcade.overlap(c.group, player, (player, item) => {
+                currentTerrain = item.terrain;
+            }, null, this));
         }
 
         speedText.text = speedString + ' ' + Math.floor(playerSpeed.current);
+
+        if (bitcoins > 0) {
+            bitcoinText.text = Math.floor(bitcoins) + ' ' + bitcoinString;
+        }
     }
 
     function render() {
@@ -286,13 +320,19 @@ var VERSION = '2.7.7';
                 currentClass = roadObjects.filter(x => x.name === effect.name)[0];
                 currentClass.turnTo(player);
 
-                var turningEffect = turningEffects.getFirstExists(false);
+                const turningEffect = turningEffects.getFirstExists(false);
 
                 if (turningEffect) {
                     turningEffect.reset(player.body.x, player.body.y);
                     turningEffect.play('turningEffect', 30, false, true);
                 }
 
+                break;
+            case 'changeTime':
+                timeLeft += effect.value;
+                break;
+            case 'changeBitcoins':
+                bitcoins += effect.value;
                 break;
         }
     }
@@ -314,8 +354,8 @@ var VERSION = '2.7.7';
         return roadClass;
     }
 
-    function changeTerrain() {
-        currentTerrain = terrainsArray[game.rnd.integerInRange(0, terrainsArray.length - 1)];
+    function changeNextTerrain() {
+        nextTerrain = terrainsArray[game.rnd.integerInRange(0, terrainsArray.length - 1)];
 
         changeTerrainTimer = game.time.now + game.rnd.integerInRange(3, 5)*1000;
     }
@@ -363,7 +403,8 @@ var VERSION = '2.7.7';
         road.x = Math.max(road.x, road.width / 2);
 
 
-        const terrainSprite = terrains[currentTerrain].group.getFirstExists(false);
+        const terrainSprite = terrains[nextTerrain].group.getFirstExists(false);
+        terrainSprite.terrain = nextTerrain;
         if (terrainSprite) {
             terrainSprite.reset(road.x, 0);
             terrainSprite.width = road.width;

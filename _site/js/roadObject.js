@@ -69,12 +69,31 @@ class Car extends BaseRoadObject {
     getEffects() {
         return {
             'car': [speedDown(200, true)],
-            'cow': [turnTo(this.name)]
+            'cow': [turnTo(this.name)],
+            'camel': [turnTo(this.name)]
         };
     }
 
     turnTo(sprite) {
         sprite.loadTexture('car');
+    }
+}
+
+class Camel extends BaseRoadObject {
+    constructor(){
+        super('camel', 'camelStanding')
+    }
+
+    getEffects(){
+        return {
+            'car': [turnTo(this.name)]
+        };
+    }
+
+    turnTo(sprite) {
+        sprite.loadTexture('camel');
+        sprite.animations.add('go');
+        sprite.animations.play('go', 10, true);
     }
 }
 
@@ -86,7 +105,30 @@ class Grass extends BaseRoadObject {
     getEffects() {
         return {
             'car': [speedDown()],
-            'cow': [speedUp()]
+            'cow': [speedUp()],
+            'camel': [speedUp(100)]
+        };
+    }
+}
+
+class Bitcoin extends BaseRoadObject {
+    constructor(){
+        super('bitcoin', 'bitcoin')
+    }
+
+    addAnimations(sprite) {
+        sprite.animations.add('spin');
+    }
+
+    playAnimation(sprite) {
+        sprite.animations.play('spin', 10, true);
+    }
+
+    getEffects() {
+        return {
+            'car': [speedUp(), addTime(), addBitcoin()],
+            'cow': [addTime(), addBitcoin()],
+            'camel': [addTime(), addBitcoin()]
         };
     }
 }
@@ -113,5 +155,19 @@ function turnTo(name) {
     return {
         id: 'turnTo',
         name: name
+    }
+}
+
+function addTime(value = 10) {
+    return {
+        id: 'changeTime',
+        value: value
+    }
+}
+
+function addBitcoin(value = 1) {
+    return {
+        id: 'changeBitcoins',
+        value: value
     }
 }
