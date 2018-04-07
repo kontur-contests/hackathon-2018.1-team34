@@ -60,7 +60,7 @@
 
         var playerSpeed = {
             current: 420,
-            max: 2000,
+            max: 1000,
             min: 100,
             add: function (speed) {
                 this.current += speed;
@@ -132,7 +132,7 @@
 
         function update() {
 
-            starfield.tilePosition.y += 2;
+            starfield.tilePosition.y += playerSpeed.current / 60;
 
             if (player.alive)
             {
@@ -171,7 +171,7 @@
                 explosion.play('kaboom', 30, false, true);
             }
 
-            if (player.x < road.x) {
+            if (player.x > border.x) {
                 player.x += 50;
             } else {
                 player.x -= 50;
