@@ -31,6 +31,8 @@ var VERSION = '2.7.7';
         game.load.spritesheet('bitcoin', 'assets/games/cowcar/icons/bitcoin.png', 79, 79);
         game.load.spritesheet('camel', 'assets/games/cowcar/icons/camel.png', 30, 75);
         game.load.spritesheet('camelStanding', 'assets/games/cowcar/icons/camel_standing.png', 78, 53);
+        game.load.spritesheet('deer', 'assets/games/cowcar/icons/deer.png', 28, 89);
+        game.load.spritesheet('deerStanding', 'assets/games/cowcar/icons/Standing_deer.png', 73, 73);
     }
 
     var road = {
@@ -89,7 +91,8 @@ var VERSION = '2.7.7';
             speedCoefficients: {
                 'car': 1.5,
                 'cow': 0.5,
-                'camel': 0.5
+                'camel': 0.5,
+                'deer': 0.5
             }
         },
         'grass': {
@@ -97,7 +100,8 @@ var VERSION = '2.7.7';
             speedCoefficients: {
                 'car': 0.5,
                 'cow': 1,
-                'camel': 0.7
+                'camel': 0.7,
+                'deer': 0.7
             }
         },
         'sand': {
@@ -105,7 +109,8 @@ var VERSION = '2.7.7';
             speedCoefficients: {
                 'car': 0.5,
                 'cow': 0.5,
-                'camel': 1.2
+                'camel': 1.2,
+                'deer': 0.5
             }
         },
         'snow': {
@@ -113,7 +118,8 @@ var VERSION = '2.7.7';
             speedCoefficients: {
                 'car': 0.5,
                 'cow': 0.7,
-                'camel': 0.5
+                'camel': 0.5,
+                'deer': 1.2
             }
         }
     };
@@ -161,6 +167,7 @@ var VERSION = '2.7.7';
             new Cow(),
             new Car(),
             new Camel(),
+            new Deer(),
             new Grass(),
             new Bitcoin()
         ];

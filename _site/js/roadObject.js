@@ -70,7 +70,8 @@ class Car extends BaseRoadObject {
         return {
             'car': [speedDown(200, true)],
             'cow': [turnTo(this.name)],
-            'camel': [turnTo(this.name)]
+            'camel': [turnTo(this.name)],
+            'deer': [turnTo(this.name)]
         };
     }
 
@@ -97,6 +98,33 @@ class Camel extends BaseRoadObject {
     }
 }
 
+class Deer extends BaseRoadObject {
+    constructor(){
+        super('deer', 'deerStanding')
+    }
+
+    addAnimations(sprite) {
+        sprite.animations.add('knock', [0, 1, 1, 1, 1]);
+    }
+
+    playAnimation(sprite) {
+        sprite.animations.play('knock', 10, true);
+    }
+
+
+    getEffects(){
+        return {
+            'car': [turnTo(this.name)]
+        };
+    }
+
+    turnTo(sprite) {
+        sprite.loadTexture('deer');
+        sprite.animations.add('go');
+        sprite.animations.play('go', 10, true);
+    }
+}
+
 class Grass extends BaseRoadObject {
     constructor(){
         super('grass', 'grass')
@@ -106,7 +134,8 @@ class Grass extends BaseRoadObject {
         return {
             'car': [speedDown()],
             'cow': [speedUp()],
-            'camel': [speedUp(100)]
+            'camel': [speedUp(100)],
+            'deer': [speedUp(100)]
         };
     }
 }
