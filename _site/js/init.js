@@ -246,18 +246,17 @@ var VERSION = '2.7.7';
             game.physics.arcade.moveToXY(right, rightX, gameHeight, playerSpeed.current);
         }
 
-        roadBorders.forEachAlive(function (obj) {
-            obj.body.velocity.y = playerSpeed.current;
-        });
-        
-        roadTextures.forEachAlive(function (obj) {
-            obj.body.velocity.y = playerSpeed.current;
-        });
-
-        cows.forEachAlive(function (obj) {
-            obj.body.velocity.y = playerSpeed.current;
-        });
+        syncObjectsVelocityWithPlayer(roadBorders);
+        syncObjectsVelocityWithPlayer(roadTextures);
+        syncObjectsVelocityWithPlayer(cows);
 
         buildBordersTimer = game.time.now + 60000 / playerSpeed.current;
+    }
+
+
+    function syncObjectsVelocityWithPlayer(objects){
+        objects.forEachAlive(function (obj) {
+            obj.body.velocity.y = playerSpeed.current;
+        });
     }
 })();
