@@ -140,6 +140,21 @@ class Grass extends BaseRoadObject {
     }
 }
 
+class Cactus extends BaseRoadObject {
+    constructor(){
+        super('cactus', 'cactus')
+    }
+
+    getEffects() {
+        return {
+            'car': [speedDown()],
+            'cow': [speedDown()],
+            'camel': [speedUp()],
+            'deer': [speedDown()]
+        };
+    }
+}
+
 class Bitcoin extends BaseRoadObject {
     constructor(){
         super('bitcoin', 'bitcoin')

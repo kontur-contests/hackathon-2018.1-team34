@@ -33,6 +33,7 @@ var VERSION = '2.7.7';
         game.load.spritesheet('camelStanding', 'assets/games/cowcar/icons/camel_standing.png', 78, 53);
         game.load.spritesheet('deer', 'assets/games/cowcar/icons/deer.png', 28, 89);
         game.load.spritesheet('deerStanding', 'assets/games/cowcar/icons/Standing_deer.png', 73, 73);
+        game.load.spritesheet('cactus', 'assets/games/cowcar/icons/cactus.png', 62, 66);
     }
 
     var road = {
@@ -169,6 +170,7 @@ var VERSION = '2.7.7';
             new Camel(),
             new Deer(),
             new Grass(),
+            new Cactus(),
             new Bitcoin()
         ];
         roadObjects.forEach(c => {
