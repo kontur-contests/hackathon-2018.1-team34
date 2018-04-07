@@ -41,11 +41,17 @@ var VERSION = '2.7.7';
         min: 100,
         add: function (speed) {
             this.current += speed;
-            this.current = Math.min(this.current, this.max);
+
+            const maxSpeed = this.max * (terrains[currentTerrain].speedCoefficients[currentClass.name] || 1);
+
+            this.current = Math.min(this.current, maxSpeed);
             this.current = Math.max(this.current, this.min);
-        }
+        },
+        coefficient: 1
     };
 
+    var speedString;
+    var speedText;
 
     var player;
     var cursors;
@@ -58,9 +64,10 @@ var VERSION = '2.7.7';
     var timeLeft = 60;
     var buildBordersTimer = 0;
     var addRandomObjectTimer = 0;
+    var changeTerrainTimer = 0;
+    var addSpeedTimer = 0;
     var stateText;
     var explosions;
-    var roadTextures;
     var roadBorders;
     var roadObjects;
     var currentClass;
@@ -69,26 +76,50 @@ var VERSION = '2.7.7';
     var lastUpdateTime;
     var gameFinished = false;
 
+    var terrains = {
+        'asphalt': {
+            texture: 'road',
+            speedCoefficients: {
+                'car': 1.5,
+                'cow': 0.8
+            }
+        },
+        'grass': {
+            texture: 'background',
+            speedCoefficients: {
+                'car': 0.2,
+                'cow': 1
+            }
+        }
+    };
+    const terrainsArray = ['asphalt', 'grass'];
+    let currentTerrain = terrainsArray[0];
+
     function create() {
 
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
         background = game.add.tileSprite(0, 0, 800, 600, 'background');
 
-        roadTextures = game.add.group();
-        roadTextures.enableBody = true;
-        roadTextures.physicsBodyType = Phaser.Physics.ARCADE;
-        for (var i = 0; i < 30; ++i)
-        {
-            game.add.tileSprite(road.x, 0, road.width, 90, 'road', 0, roadTextures);
-        }
+        terrainsArray.forEach(id => {
+            const terrain = terrains[id];
 
-        roadTextures.setAll('anchor.x', 0.5);
-        roadTextures.setAll('anchor.y', 1);
-        roadTextures.setAll('outOfBoundsKill', true);
-        roadTextures.setAll('checkWorldBounds', true);
-        roadTextures.forEachAlive(function (x) {
-            x.kill();
+            const textures = game.add.group();
+            textures.enableBody = true;
+            textures.physicsBodyType = Phaser.Physics.ARCADE;
+            for (let i = 0; i < 30; ++i) {
+                game.add.tileSprite(road.x, 0, road.width, 90, terrain.texture, 0, textures);
+            }
+
+            textures.setAll('anchor.x', 0.5);
+            textures.setAll('anchor.y', 1);
+            textures.setAll('outOfBoundsKill', true);
+            textures.setAll('checkWorldBounds', true);
+            textures.forEachAlive(function (x) {
+                x.kill();
+            });
+
+            terrain.group = textures;
         });
 
         roadBorders = game.add.group();
@@ -112,12 +143,19 @@ var VERSION = '2.7.7';
         game.physics.enable(player, Phaser.Physics.ARCADE);
 
         scoreString = 'Пройдено: ';
-        scoreText = game.add.text(10, 10, scoreString + score, { font: '34px Arial', fill: '#fff' });
+        scoreText = game.add.text(10, 10, scoreString + score, {font: '34px Arial', fill: '#fff'});
 
         timeString = 'Осталось: ';
-        timeText = game.add.text(550, 10, timeString + timeLeft + ' с', { font: '34px Arial', fill: '#fff' });
+        timeText = game.add.text(550, 10, timeString + timeLeft + ' с', {font: '34px Arial', fill: '#fff'});
 
-        stateText = game.add.text(game.world.centerX,game.world.centerY, '', { font: '84px Arial', fill: '#fff', align: 'center'  });
+        speedString = 'Скорость: ';
+        speedText = game.add.text(10, 550, speedString + playerSpeed.current, {font: '34px Arial', fill: '#fff'});
+
+        stateText = game.add.text(game.world.centerX, game.world.centerY, '', {
+            font: '84px Arial',
+            fill: '#fff',
+            align: 'center'
+        });
         stateText.anchor.setTo(0.5, 0.5);
         stateText.visible = false;
 
@@ -168,9 +206,9 @@ var VERSION = '2.7.7';
 
         if (timeLeft < 1) {
             player.kill();
-            roadTextures.forEach(x => x.kill());
             roadBorders.forEach(x => x.kill());
             roadObjects.forEach(c => c.group.forEach(x => x.kill()));
+            terrainsArray.map(t => terrains[t]).forEach(t => t.group.forEach(x => x.kill()));
             stateText.text = 'Вы проехали\r\n' + Math.floor(score);
             stateText.visible = true;
             gameFinished = true;
@@ -182,22 +220,30 @@ var VERSION = '2.7.7';
 
         background.tilePosition.y += pathPassed;
 
-        if (player.alive)
-        {
+        if (player.alive) {
             player.body.velocity.setTo(0, 0);
 
             checkCursors();
 
-            if (game.time.now > buildBordersTimer)
-            {
+            if (game.time.now > buildBordersTimer) {
                 buildBorders();
             }
             game.physics.arcade.overlap(roadBorders, player, playerHitsBorder, null, this);
 
-
-            if (game.time.now > addRandomObjectTimer){
+            if (game.time.now > addRandomObjectTimer) {
                 addRandomObject();
             }
+
+            if (game.time.now > changeTerrainTimer) {
+                changeTerrain();
+            }
+
+            if (game.time.now > addSpeedTimer) {
+                playerSpeed.add(10);
+
+                addSpeedTimer = game.time.now + 100;
+            }
+
 
             roadObjects.forEach(c => game.physics.arcade.overlap(c.group, player, (player, item) => {
 
@@ -212,9 +258,12 @@ var VERSION = '2.7.7';
 
             }, null, this));
         }
+
+        speedText.text = speedString + ' ' + Math.floor(playerSpeed.current);
     }
 
-    function render() {    }
+    function render() {
+    }
 
     function applyEffect(effect) {
         switch (effect.id) {
@@ -248,12 +297,11 @@ var VERSION = '2.7.7';
         }
     }
 
-    function addRandomObject(){
-
-        var roadClass =  roadObjects[game.rnd.integerInRange(0, roadObjects.length - 1)];
+    function addRandomObject() {
+        var roadClass = roadObjects[game.rnd.integerInRange(0, roadObjects.length - 1)];
         var item = roadClass.group.getFirstExists(false);
 
-        if (item){
+        if (item) {
             var x = game.rnd.integerInRange(road.x - road.width / 2 + 100, road.x + road.width / 2 - 100);
             item.reset(x, 0);
             roadClass.playAnimation(item);
@@ -261,28 +309,29 @@ var VERSION = '2.7.7';
             game.physics.arcade.moveToXY(item, x, gameHeight, playerSpeed.current);
 
             addRandomObjectTimer = game.time.now + 1000;
-
-
-
         }
 
         return roadClass;
     }
 
-    function checkCursors(){
-        if (cursors.left.isDown)
-        {
+    function changeTerrain() {
+        currentTerrain = terrainsArray[game.rnd.integerInRange(0, terrainsArray.length - 1)];
+
+        changeTerrainTimer = game.time.now + game.rnd.integerInRange(3, 5)*1000;
+    }
+
+    function checkCursors() {
+        if (cursors.left.isDown) {
             player.body.velocity.x = -200;
         }
-        else if (cursors.right.isDown)
-        {
+        else if (cursors.right.isDown) {
             player.body.velocity.x = 200;
         }
     }
 
-    function playerHitsBorder (player, border) {
+    function playerHitsBorder(player, border) {
 
-        playerSpeed.add(-playerSpeed.current * 0.25 - 200);
+        playerSpeed.add(-playerSpeed.current * 0.5);
 
         explode(player.body.x, player.body.y);
 
@@ -303,8 +352,7 @@ var VERSION = '2.7.7';
     }
 
 
-    function buildBorders () {
-        playerSpeed.add(game.rnd.integerInRange(0, 10));
+    function buildBorders() {
 
         road.width += game.rnd.integerInRange(-50, 50);
         road.width = Math.min(road.width, road.maxWidth);
@@ -313,19 +361,19 @@ var VERSION = '2.7.7';
         road.x += game.rnd.integerInRange(-50, 50);
         road.x = Math.min(road.x, gameWidth - road.width / 2);
         road.x = Math.max(road.x, road.width / 2);
-        
-        var roadTexture = roadTextures.getFirstExists(false);
-        if (roadTexture) {
-            roadTexture.reset(road.x, 0);
-            roadTexture.width = road.width;
-            game.physics.arcade.moveToXY(roadTexture, road.x, gameHeight, playerSpeed.current);
+
+
+        const terrainSprite = terrains[currentTerrain].group.getFirstExists(false);
+        if (terrainSprite) {
+            terrainSprite.reset(road.x, 0);
+            terrainSprite.width = road.width;
+            game.physics.arcade.moveToXY(terrainSprite, road.x, gameHeight, playerSpeed.current);
         }
-        
-        
+
         var borders = roadBorders.getAll('exists', false);
         var left = borders[0];
         var right = borders[1];
-        
+
         if (left) {
             var leftX = road.x - road.width / 2;
             left.reset(leftX, 0);
@@ -341,14 +389,14 @@ var VERSION = '2.7.7';
         }
 
         syncObjectsVelocityWithPlayer(roadBorders);
-        syncObjectsVelocityWithPlayer(roadTextures);
         roadObjects.forEach(x => syncObjectsVelocityWithPlayer(x.group));
+        terrainsArray.map(t => terrains[t]).forEach(x => syncObjectsVelocityWithPlayer(x.group));
 
         buildBordersTimer = game.time.now + 60000 / playerSpeed.current;
     }
 
 
-    function syncObjectsVelocityWithPlayer(objects){
+    function syncObjectsVelocityWithPlayer(objects) {
         objects.forEachAlive(function (obj) {
             obj.body.velocity.y = playerSpeed.current;
         });
