@@ -43,6 +43,7 @@ var VERSION = '2.7.7';
         }
     };
 
+
     var player;
     var aliens;
     var bullets;
@@ -134,26 +135,29 @@ var VERSION = '2.7.7';
         {
             player.body.velocity.setTo(0, 0);
 
-            if (cursors.left.isDown)
-            {
-                player.body.velocity.x = -200;
-            }
-            else if (cursors.right.isDown)
-            {
-                player.body.velocity.x = 200;
-            }
+            checkCursors();
 
             if (game.time.now > firingTimer)
             {
-                enemyFires();
+                buildBorders();
             }
 
             game.physics.arcade.overlap(roadBorders, player, playerHitsBorder, null, this);
         }
-
     }
 
-    function render() {
+    function render() {    }
+
+
+    function checkCursors(){
+        if (cursors.left.isDown)
+        {
+            player.body.velocity.x = -200;
+        }
+        else if (cursors.right.isDown)
+        {
+            player.body.velocity.x = 200;
+        }
     }
 
     function playerHitsBorder (player, border) {
@@ -172,11 +176,10 @@ var VERSION = '2.7.7';
         } else {
             player.x -= 50;
         }
-
-
     }
 
-    function enemyFires () {
+
+    function buildBorders () {
         playerSpeed.add(game.rnd.integerInRange(0, 50));
 
         road.width += game.rnd.integerInRange(-50, 50);
@@ -222,15 +225,5 @@ var VERSION = '2.7.7';
         });
 
         firingTimer = game.time.now + 60000 / playerSpeed.current;
-    }
-
-    function restart () {
-
-        lives.callAll('revive');
-        aliens.removeAll();
-
-        player.revive();
-        stateText.visible = false;
-
     }
 })();
