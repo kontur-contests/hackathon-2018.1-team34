@@ -54,7 +54,9 @@
 
         var road = {
             x: gameWidth / 2,
-            width: 600
+            width: 600,
+            minWidth: 300,
+            maxWidth: 600
         };
 
         var playerSpeed = 420;
@@ -189,10 +191,14 @@
             var left = twoObjects[0];
             var right = twoObjects[1];
 
+            playerSpeed += game.rnd.integerInRange(-50, 50);
+            playerSpeed = Math.min(road.width, 1000);
+            playerSpeed = Math.max(road.width, 100);
+
             road.width += game.rnd.integerInRange(-50, 50);
 
-            road.width = Math.min(road.width, 600);
-            road.width = Math.max(road.width, 100);
+            road.width = Math.min(road.width, road.maxWidth);
+            road.width = Math.max(road.width, road.minWidth);
 
             road.x += game.rnd.integerInRange(-50, 50);
             road.x = Math.min(road.x, gameWidth - road.width / 2);
@@ -210,7 +216,11 @@
                 game.physics.arcade.moveToXY(right, rightX, gameHeight, playerSpeed);
             }
 
-            firingTimer = game.time.now + 100;
+            fallingObjects.forEachAlive(function (obj) {
+                obj.body.velocity.y = playerSpeed;
+            });
+
+            firingTimer = game.time.now + 60000 / playerSpeed;
         }
 
         function restart () {
