@@ -23,6 +23,7 @@ var VERSION = '2.7.7';
         game.load.image('sand', 'assets/games/cowcar/textures/sand.jpg');
         game.load.image('road', 'assets/games/cowcar/textures/asphalt.png');
         game.load.image('grass', 'assets/games/cowcar/icons/grass.png');
+        game.load.image('snow', 'assets/games/cowcar/textures/snow.jpg');
         game.load.spritesheet('cow', 'assets/games/cowcar/icons/cow.png', 40, 80);
         game.load.spritesheet('cowStanding', 'assets/games/cowcar/icons/cow_standing.png', 75, 50);
         game.load.spritesheet('turningEffect', 'assets/games/cowcar/icons/effect.png', 256, 256);
@@ -70,7 +71,7 @@ var VERSION = '2.7.7';
     var timeLeft = 60;
     var buildBordersTimer = 0;
     var addRandomObjectTimer = 0;
-    var changeTerrainTimer = 0;
+    var changeTerrainTimer = 5000;
     var addSpeedTimer = 0;
     var stateText;
     var explosions;
@@ -106,9 +107,17 @@ var VERSION = '2.7.7';
                 'cow': 0.5,
                 'camel': 1.2
             }
+        },
+        'snow': {
+            texture: 'snow',
+            speedCoefficients: {
+                'car': 0.5,
+                'cow': 0.7,
+                'camel': 0.5
+            }
         }
     };
-    const terrainsArray = ['asphalt', 'grass', 'sand'];
+    const terrainsArray = ['asphalt', 'grass', 'sand', 'snow'];
     let nextTerrain = terrainsArray[0];
     let currentTerrain = terrainsArray[1];
 
@@ -357,7 +366,7 @@ var VERSION = '2.7.7';
     function changeNextTerrain() {
         nextTerrain = terrainsArray[game.rnd.integerInRange(0, terrainsArray.length - 1)];
 
-        changeTerrainTimer = game.time.now + game.rnd.integerInRange(3, 5)*1000;
+        changeTerrainTimer = game.time.now + game.rnd.integerInRange(5, 7)*1000;
     }
 
     function checkCursors() {
