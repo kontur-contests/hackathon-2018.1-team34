@@ -16,12 +16,16 @@ var VERSION = '2.7.7';
     function preload() {
         game.load.image('wall', 'assets/games/cowcar/textures/wall.png');
         game.load.spritesheet('invader', 'assets/games/invaders/invader32x32x4.png', 32, 32);
-        game.load.image('ship', 'assets/games/cowcar/icons/car.png');
+        game.load.image('car', 'assets/games/cowcar/icons/car.png');
+        game.load.image('carStanding', 'assets/games/cowcar/icons/car_standing.png');
         game.load.spritesheet('kaboom', 'assets/games/invaders/explode.png', 128, 128);
         game.load.image('background', 'assets/games/cowcar/textures/grass.jpg');
         game.load.image('road', 'assets/games/cowcar/textures/asphalt.png');
+        game.load.image('grass', 'assets/games/cowcar/icons/grass.png');
         game.load.spritesheet('cow', 'assets/games/cowcar/icons/cow.png', 40, 80);
         game.load.spritesheet('cowStanding', 'assets/games/cowcar/icons/cow_standing.png', 75, 50);
+        game.load.spritesheet('turningEffect', 'assets/games/cowcar/icons/effect.png', 256, 256);
+        game.load.spritesheet('speedUpEffect', 'assets/games/cowcar/icons/speedup_effect.png', 109, 104);
     }
 
     var road = {
@@ -49,6 +53,9 @@ var VERSION = '2.7.7';
     var score = 0;
     var scoreString = '';
     var scoreText;
+    var timeString;
+    var timeText;
+    var timeLeft = 60;
     var buildBordersTimer = 0;
     var addRandomObjectTimer = 0;
     var stateText;
@@ -57,13 +64,16 @@ var VERSION = '2.7.7';
     var roadBorders;
     var roadObjects;
     var currentClass;
+    var turningEffects;
+    var speedUpEffects;
+    var lastUpdateTime;
+    var gameFinished = false;
 
     function create() {
 
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
         background = game.add.tileSprite(0, 0, 800, 600, 'background');
-
 
         roadTextures = game.add.group();
         roadTextures.enableBody = true;
@@ -90,23 +100,24 @@ var VERSION = '2.7.7';
         roadBorders.setAll('outOfBoundsKill', true);
         roadBorders.setAll('checkWorldBounds', true);
 
-        roadObjects = [new Cow(), new Car()];
+        roadObjects = [new Cow(), new Car(), new Grass()];
         roadObjects.forEach(c => {
             c.init(game);
         });
 
         currentClass = roadObjects[1];
 
-        player = game.add.sprite(400, 500, 'ship');
+        player = game.add.sprite(400, 500, 'car');
         player.anchor.setTo(0.5, 0.5);
-        player.animations.add('go');
-        player.animations.play('go', 10, true);
         game.physics.enable(player, Phaser.Physics.ARCADE);
 
-        scoreString = 'Score : ';
+        scoreString = 'Пройдено: ';
         scoreText = game.add.text(10, 10, scoreString + score, { font: '34px Arial', fill: '#fff' });
 
-        stateText = game.add.text(game.world.centerX,game.world.centerY,' ', { font: '84px Arial', fill: '#fff' });
+        timeString = 'Осталось: ';
+        timeText = game.add.text(550, 10, timeString + timeLeft + ' с', { font: '34px Arial', fill: '#fff' });
+
+        stateText = game.add.text(game.world.centerX,game.world.centerY, '', { font: '84px Arial', fill: '#fff', align: 'center'  });
         stateText.anchor.setTo(0.5, 0.5);
         stateText.visible = false;
 
@@ -118,12 +129,58 @@ var VERSION = '2.7.7';
             explosion.animations.add('kaboom');
         }, this);
 
+        turningEffects = game.add.group();
+        turningEffects.createMultiple(30, 'turningEffect');
+        turningEffects.forEach(function (effect) {
+            effect.anchor.x = 0.5;
+            effect.anchor.y = 0.5;
+            effect.animations.add('turningEffect');
+        }, this);
+
+        speedUpEffects = game.add.group();
+        speedUpEffects.createMultiple(30, 'speedUpEffect');
+        speedUpEffects.forEach(function (effect) {
+            effect.anchor.x = 0.5;
+            effect.anchor.y = 0.5;
+            effect.animations.add('speedUpEffect');
+        }, this);
+
         cursors = game.input.keyboard.createCursorKeys();
 
+        lastUpdateTime = game.time.now;
     }
 
     function update() {
-        background.tilePosition.y += playerSpeed.current / 60;
+
+        if (gameFinished) {
+            return;
+        }
+
+        let pathPassed = playerSpeed.current / 60;
+
+        score += pathPassed / 100;
+        scoreText.text = scoreString + Math.floor(score);
+
+        const now = game.time.now;
+
+        timeLeft -= (now - lastUpdateTime) / 1000;
+        timeLeft = Math.max(0, timeLeft);
+
+        if (timeLeft < 1) {
+            player.kill();
+            roadTextures.forEach(x => x.kill());
+            roadBorders.forEach(x => x.kill());
+            roadObjects.forEach(c => c.group.forEach(x => x.kill()));
+            stateText.text = 'Вы проехали\r\n' + Math.floor(score);
+            stateText.visible = true;
+            gameFinished = true;
+        }
+
+        lastUpdateTime = now;
+
+        timeText.text = timeString + Math.floor(timeLeft) + ' с';
+
+        background.tilePosition.y += pathPassed;
 
         if (player.alive)
         {
@@ -164,14 +221,28 @@ var VERSION = '2.7.7';
             case 'speedChange':
                 playerSpeed.add(effect.value);
 
-                if (effect.value < 0) {
-                    explode(player.body.x, player.body.y);
+                if (effect.explode) {
+                    explode(player.body.x + 30, player.body.y);
+                } else if (effect.value > 0) {
+                    var speedUpEffect = speedUpEffects.getFirstExists(false);
+
+                    if (speedUpEffect) {
+                        speedUpEffect.reset(player.body.x + 20, player.body.y + 100);
+                        speedUpEffect.play('speedUpEffect', 30, false, true);
+                    }
                 }
 
                 break;
             case 'turnTo':
                 currentClass = roadObjects.filter(x => x.name === effect.name)[0];
                 currentClass.turnTo(player);
+
+                var turningEffect = turningEffects.getFirstExists(false);
+
+                if (turningEffect) {
+                    turningEffect.reset(player.body.x, player.body.y);
+                    turningEffect.play('turningEffect', 30, false, true);
+                }
 
                 break;
         }
@@ -183,13 +254,13 @@ var VERSION = '2.7.7';
         var item = roadClass.group.getFirstExists(false);
 
         if (item){
-            var  x = game.rnd.integerInRange(road.x - road.width / 2, road.x + road.width / 2);
+            var x = game.rnd.integerInRange(road.x - road.width / 2 + 100, road.x + road.width / 2 - 100);
             item.reset(x, 0);
             roadClass.playAnimation(item);
 
             game.physics.arcade.moveToXY(item, x, gameHeight, playerSpeed.current);
 
-            addRandomObjectTimer = game.time.now + 600;
+            addRandomObjectTimer = game.time.now + 1000;
 
 
 
@@ -197,8 +268,6 @@ var VERSION = '2.7.7';
 
         return roadClass;
     }
-
-
 
     function checkCursors(){
         if (cursors.left.isDown)
@@ -261,12 +330,14 @@ var VERSION = '2.7.7';
             var leftX = road.x - road.width / 2;
             left.reset(leftX, 0);
             game.physics.arcade.moveToXY(left, leftX, gameHeight, playerSpeed.current);
+            roadBorders.sendToBack(left);
         }
 
         if (right) {
             var rightX = road.x + road.width / 2;
             right.reset(rightX, 0);
             game.physics.arcade.moveToXY(right, rightX, gameHeight, playerSpeed.current);
+            roadBorders.sendToBack(right);
         }
 
         syncObjectsVelocityWithPlayer(roadBorders);

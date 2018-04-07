@@ -45,7 +45,7 @@ class Cow extends BaseRoadObject {
     getEffects(){
         return {
             'car': [turnTo(this.name)],
-            'cow': [speedUp()]
+            //'cow': [speedUp()]
         };
     }
 
@@ -58,7 +58,7 @@ class Cow extends BaseRoadObject {
 
 class Car extends BaseRoadObject {
     constructor(){
-        super('car', 'ship')
+        super('car', 'carStanding')
     }
 
     addAnimations(sprite) {
@@ -68,28 +68,44 @@ class Car extends BaseRoadObject {
 
     getEffects() {
         return {
-            'car': [speedDown()],
+            'car': [speedDown(200, true)],
             'cow': [turnTo(this.name)]
         };
     }
 
     turnTo(sprite) {
-        sprite.loadTexture('ship');
+        sprite.loadTexture('car');
     }
 }
+
+class Grass extends BaseRoadObject {
+    constructor(){
+        super('grass', 'grass')
+    }
+
+    getEffects() {
+        return {
+            'car': [speedDown()],
+            'cow': [speedUp()]
+        };
+    }
+}
+
 
 function speedUp(value = 200) {
     return {
         id: 'speedChange',
-        value: value
+        value: value,
+        explode: false
     };
 }
 
 
-function speedDown(value = 200) {
+function speedDown(value = 200, explode = false) {
     return {
         id: 'speedChange',
-        value: -value
+        value: -value,
+        explode: explode
     };
 }
 
