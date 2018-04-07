@@ -22,6 +22,7 @@ var VERSION = '2.7.7';
         game.load.image('background', 'assets/games/cowcar/textures/grass.jpg');
         game.load.image('road', 'assets/games/cowcar/textures/asphalt.png');
         game.load.spritesheet('cow', 'assets/games/cowcar/icons/cow.png', 40, 80);
+        game.load.spritesheet('cowStanding', 'assets/games/cowcar/icons/cow_standing.png', 75, 50);
     }
 
     var road = {
@@ -91,15 +92,18 @@ var VERSION = '2.7.7';
         roadBorders = game.add.group();
         roadBorders.enableBody = true;
         roadBorders.physicsBodyType = Phaser.Physics.ARCADE;
-        roadBorders.createMultiple(30, 'enemyBullet');
+        roadBorders.createMultiple(30, 'cowStanding');
         roadBorders.setAll('anchor.x', 0.5);
         roadBorders.setAll('anchor.y', 1);
         roadBorders.setAll('outOfBoundsKill', true);
         roadBorders.setAll('checkWorldBounds', true);
+        roadBorders.forEach(function (x) {
+            x.animations.add('nod', [0, 1, 2, 3, 2, 1, 0]);
+        }, this);
 
         player = game.add.sprite(400, 500, 'cow', 0);
         player.anchor.setTo(0.5, 0.5);
-        var go = player.animations.add('go');
+        player.animations.add('go');
         player.animations.play('go', 10, true);
         game.physics.enable(player, Phaser.Physics.ARCADE);
 
@@ -198,12 +202,14 @@ var VERSION = '2.7.7';
         if (left) {
             var leftX = road.x - road.width / 2;
             left.reset(leftX, 0);
+            left.animations.play('nod', 10, true);
             game.physics.arcade.moveToXY(left, leftX, gameHeight, playerSpeed.current);
         }
 
         if (right) {
             var rightX = road.x + road.width / 2;
             right.reset(rightX, 0);
+            right.animations.play('nod', 10, true);
             game.physics.arcade.moveToXY(right, rightX, gameHeight, playerSpeed.current);
         }
 
