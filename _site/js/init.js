@@ -55,7 +55,8 @@ var VERSION = '2.7.7';
     var explosions;
     var roadTextures;
     var roadBorders;
-    var cows;
+    var roadObjects;
+    var currentClass;
 
     function create() {
 
@@ -89,18 +90,12 @@ var VERSION = '2.7.7';
         roadBorders.setAll('outOfBoundsKill', true);
         roadBorders.setAll('checkWorldBounds', true);
 
-        cows = game.add.group();
-        cows.enableBody = true;
-        cows.physicsBodyType = Phaser.Physics.ARCADE;
-        cows.createMultiple(30, 'cowStanding');
-        cows.setAll('anchor.x', 0.5);
-        cows.setAll('anchor.y', 1);
-        cows.setAll('outOfBoundsKill', true);
-        cows.setAll('checkWorldBounds', true);
-        cows.forEach(function (x) {
-            x.animations.add('nod', [0, 1, 2, 3, 2, 1, 0]);
-        }, this);
+        roadObjects = [new Cow(), new Car()];
+        roadObjects.forEach(c => {
+            c.init(game);
+        });
 
+        currentClass = roadObjects[1];
 
         player = game.add.sprite(400, 500, 'ship');
         player.anchor.setTo(0.5, 0.5);
@@ -124,6 +119,7 @@ var VERSION = '2.7.7';
         }, this);
 
         cursors = game.input.keyboard.createCursorKeys();
+
     }
 
     function update() {
@@ -146,39 +142,57 @@ var VERSION = '2.7.7';
                 addRandomObject();
             }
 
-            game.physics.arcade.overlap(cows, player, changePlayerView, null, this);
+            roadObjects.forEach(c => game.physics.arcade.overlap(c.group, player, (player, item) => {
 
+                item.kill();
+
+                let effects = c.getEffects();
+
+                if (effects[currentClass.name]) {
+                    effects[currentClass.name].forEach(applyEffect);
+                }
+
+
+            }, null, this));
         }
     }
 
     function render() {    }
 
+    function applyEffect(effect) {
+        switch (effect.id) {
+            case 'speedChange':
+                playerSpeed.add(effect.value);
+                break;
+            case 'turnTo':
+                currentClass = roadObjects.filter(x => x.name === effect.name)[0];
+                currentClass.turnTo(player);
+
+                break;
+        }
+    }
 
     function addRandomObject(){
-        var cow = cows.getAll('exists', false)[0];
 
-        if (cow){
+        var roadClass =  roadObjects[game.rnd.integerInRange(0, roadObjects.length - 1)];
+        var item = roadClass.group.getFirstExists(false);
+
+        if (item){
             var  x = game.rnd.integerInRange(road.x - road.width / 2, road.x + road.width / 2);
-            cow.reset(x, 0);
-            cow.animations.play('nod', 10, true);
+            item.reset(x, 0);
+            roadClass.playAnimation(item);
 
-            game.physics.arcade.moveToXY(cow, x, gameHeight, playerSpeed.current);
-
+            game.physics.arcade.moveToXY(item, x, gameHeight, playerSpeed.current);
 
             addRandomObjectTimer = game.time.now + 600;
+
+
+
         }
 
-        return cow;
+        return roadClass;
     }
 
-
-    function changePlayerView(player, object){
-        player.loadTexture('cow');
-
-        player.animations.add('walk');
-
-        player.animations.play('walk', 30, true);
-    }
 
 
     function checkCursors(){
@@ -212,7 +226,7 @@ var VERSION = '2.7.7';
 
 
     function buildBorders () {
-        playerSpeed.add(game.rnd.integerInRange(0, 50));
+        playerSpeed.add(game.rnd.integerInRange(0, 10));
 
         road.width += game.rnd.integerInRange(-50, 50);
         road.width = Math.min(road.width, road.maxWidth);
@@ -248,7 +262,7 @@ var VERSION = '2.7.7';
 
         syncObjectsVelocityWithPlayer(roadBorders);
         syncObjectsVelocityWithPlayer(roadTextures);
-        syncObjectsVelocityWithPlayer(cows);
+        roadObjects.forEach(x => syncObjectsVelocityWithPlayer(x.group));
 
         buildBordersTimer = game.time.now + 60000 / playerSpeed.current;
     }

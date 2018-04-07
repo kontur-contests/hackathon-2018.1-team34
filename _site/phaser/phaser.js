@@ -12875,22 +12875,22 @@ var step_r = vec2.create(),
  *     var body = new Body({ mass: 1 });
  *     world.addBody(body);
  *
- *     function animate(){
- *         requestAnimationFrame(animate);
+ *     function addAnimations(){
+ *         requestAnimationFrame(addAnimations);
  *         world.step(fixedTimeStep);
  *         renderBody(body.position, body.angle);
  *     }
  *
  *     // Start animation loop
- *     requestAnimationFrame(animate);
+ *     requestAnimationFrame(addAnimations);
  *
  * @example
  *     // Fixed timestepping with interpolation
  *     var maxSubSteps = 10;
  *     var lastTimeSeconds;
  *
- *     function animate(t){
- *         requestAnimationFrame(animate);
+ *     function addAnimations(t){
+ *         requestAnimationFrame(addAnimations);
  *         timeSeconds = t / 1000;
  *         lastTimeSeconds = lastTimeSeconds || timeSeconds;
  *
@@ -12901,7 +12901,7 @@ var step_r = vec2.create(),
  *     }
  *
  *     // Start animation loop
- *     requestAnimationFrame(animate);
+ *     requestAnimationFrame(addAnimations);
  *
  * @see http://bulletphysics.org/mediawiki-1.5.8/index.php/Stepping_The_World
  */
@@ -59868,7 +59868,7 @@ Phaser.Rope.prototype.getBounds = function (matrix) {
 * A Rope will call its updateAnimation function on each update loop if it has one.
 *
 * @name Phaser.Rope#updateAnimation
-* @property {function} updateAnimation - Set to a function if you'd like the rope to animate during the update phase. Set to false or null to remove it.
+* @property {function} updateAnimation - Set to a function if you'd like the rope to addAnimations during the update phase. Set to false or null to remove it.
 */
 Object.defineProperty(Phaser.Rope.prototype, "updateAnimation", {
 
@@ -102398,7 +102398,7 @@ Phaser.Weapon.KILL_STATIC_BOUNDS = 6;
 * so be careful it doesn't grow too large.
 *
 * You can either set the texture key and frame here, or via the `Weapon.bulletKey` and `Weapon.bulletFrame`
-* properties. You can also animate bullets, or set them to use random frames. All Bullets belonging to a
+* properties. You can also addAnimations bullets, or set them to use random frames. All Bullets belonging to a
 * single Weapon instance must share the same texture key however.
 *
 * @method Phaser.Weapon#createBullets
