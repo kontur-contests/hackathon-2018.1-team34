@@ -55,6 +55,7 @@ var VERSION = '2.7.7';
     var explosions;
     var roadTextures;
     var roadBorders;
+    var cows;
 
     function create() {
 
@@ -62,6 +63,10 @@ var VERSION = '2.7.7';
 
         background = game.add.tileSprite(0, 0, 800, 600, 'background');
 
+
+        roadTextures = game.add.group();
+        roadTextures.enableBody = true;
+        roadTextures.physicsBodyType = Phaser.Physics.ARCADE;
         for (var i = 0; i < 30; ++i)
         {
             game.add.tileSprite(road.x, 0, road.width, 90, 'road', 0, roadTextures);
@@ -87,7 +92,6 @@ var VERSION = '2.7.7';
             x.animations.add('nod', [0, 1, 2, 3, 2, 1, 0]);
         }, this);
 
-        player = game.add.sprite(400, 500, 'cow', 0);
         cows = game.add.group();
         cows.enableBody = true;
         cows.physicsBodyType = Phaser.Physics.ARCADE;
