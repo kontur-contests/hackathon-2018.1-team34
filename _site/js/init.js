@@ -21,6 +21,7 @@ var VERSION = '2.7.7';
         game.load.spritesheet('kaboom', 'assets/games/invaders/explode.png', 128, 128);
         game.load.image('background', 'assets/games/cowcar/textures/grass.jpg');
         game.load.image('road', 'assets/games/cowcar/textures/asphalt.png');
+        game.load.spritesheet('cow', 'assets/games/cowcar/icons/cow.png', 40, 80);
     }
 
     var road = {
@@ -96,8 +97,10 @@ var VERSION = '2.7.7';
         roadBorders.setAll('outOfBoundsKill', true);
         roadBorders.setAll('checkWorldBounds', true);
 
-        player = game.add.sprite(400, 500, 'ship');
+        player = game.add.sprite(400, 500, 'cow', 0);
         player.anchor.setTo(0.5, 0.5);
+        var go = player.animations.add('go');
+        player.animations.play('go', 10, true);
         game.physics.enable(player, Phaser.Physics.ARCADE);
 
         scoreString = 'Score : ';
