@@ -14,7 +14,6 @@ var VERSION = '2.7.7';
     });
 
     function preload() {
-        game.load.image('bullet', 'assets/games/invaders/bullet.png');
         game.load.image('enemyBullet', 'assets/games/cowcar/textures/wall.png');
         game.load.spritesheet('invader', 'assets/games/invaders/invader32x32x4.png', 32, 32);
         game.load.image('ship', 'assets/games/cowcar/icons/car.png');
@@ -45,14 +44,13 @@ var VERSION = '2.7.7';
 
 
     var player;
-    var aliens;
-    var bullets;
     var cursors;
     var background;
     var score = 0;
     var scoreString = '';
     var scoreText;
-    var firingTimer = 0;
+    var buildBordersTimer = 0;
+    var addRandomObjectTimer = 0;
     var stateText;
     var explosions;
     var roadTextures;
@@ -63,19 +61,6 @@ var VERSION = '2.7.7';
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
         background = game.add.tileSprite(0, 0, 800, 600, 'background');
-
-        bullets = game.add.group();
-        bullets.enableBody = true;
-        bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        bullets.createMultiple(30, 'bullet');
-        bullets.setAll('anchor.x', 0.5);
-        bullets.setAll('anchor.y', 1);
-        bullets.setAll('outOfBoundsKill', true);
-        bullets.setAll('checkWorldBounds', true);
-        
-        roadTextures = game.add.group();
-        roadTextures.enableBody = true;
-        roadTextures.physicsBodyType = Phaser.Physics.ARCADE;
 
         for (var i = 0; i < 30; ++i)
         {
@@ -103,6 +88,17 @@ var VERSION = '2.7.7';
         }, this);
 
         player = game.add.sprite(400, 500, 'cow', 0);
+        cows = game.add.group();
+        cows.enableBody = true;
+        cows.physicsBodyType = Phaser.Physics.ARCADE;
+        cows.createMultiple(30, 'invader');
+        cows.setAll('anchor.x', 0.5);
+        cows.setAll('anchor.y', 1);
+        cows.setAll('outOfBoundsKill', true);
+        cows.setAll('checkWorldBounds', true);
+
+
+        player = game.add.sprite(400, 500, 'ship');
         player.anchor.setTo(0.5, 0.5);
         player.animations.add('go');
         player.animations.play('go', 10, true);
@@ -124,11 +120,9 @@ var VERSION = '2.7.7';
         }, this);
 
         cursors = game.input.keyboard.createCursorKeys();
-
     }
 
     function update() {
-
         background.tilePosition.y += playerSpeed.current / 60;
 
         if (player.alive)
@@ -137,16 +131,44 @@ var VERSION = '2.7.7';
 
             checkCursors();
 
-            if (game.time.now > firingTimer)
+            if (game.time.now > buildBordersTimer)
             {
                 buildBorders();
             }
-
             game.physics.arcade.overlap(roadBorders, player, playerHitsBorder, null, this);
+
+
+            if (game.time.now > addRandomObjectTimer){
+                addRandomObject();
+            }
+
+            game.physics.arcade.overlap(cows, player, changePlayerView, null, this);
+
         }
     }
 
     function render() {    }
+
+
+    function addRandomObject(){
+        var cow = cows.getAll('exists', false)[0];
+
+        if (cow){
+            var  x = game.rnd.integerInRange(road.x - road.width / 2, road.x + road.width / 2);
+            cow.reset(x, 0);
+            game.physics.arcade.moveToXY(cow, x, gameHeight, playerSpeed.current);
+
+
+            addRandomObjectTimer = game.time.now + 600;
+        }
+
+        return cow;
+    }
+
+
+    function changePlayerView(player, object){
+        player.loadTexture('invader')
+    }
 
 
     function checkCursors(){
@@ -224,6 +246,6 @@ var VERSION = '2.7.7';
             obj.body.velocity.y = playerSpeed.current;
         });
 
-        firingTimer = game.time.now + 60000 / playerSpeed.current;
+        buildBordersTimer = game.time.now + 60000 / playerSpeed.current;
     }
 })();
