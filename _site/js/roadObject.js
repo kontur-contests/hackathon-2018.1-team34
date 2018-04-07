@@ -51,6 +51,8 @@ class Cow extends BaseRoadObject {
 
     turnTo(sprite) {
         sprite.loadTexture('cow');
+        sprite.animations.add('go');
+        sprite.animations.play('go', 10, true);
     }
 }
 

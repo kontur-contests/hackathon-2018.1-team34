@@ -163,6 +163,11 @@ var VERSION = '2.7.7';
         switch (effect.id) {
             case 'speedChange':
                 playerSpeed.add(effect.value);
+
+                if (effect.value < 0) {
+                    explode(player.body.x, player.body.y);
+                }
+
                 break;
             case 'turnTo':
                 currentClass = roadObjects.filter(x => x.name === effect.name)[0];
@@ -210,17 +215,21 @@ var VERSION = '2.7.7';
 
         playerSpeed.add(-playerSpeed.current * 0.25 - 200);
 
-        var explosion = explosions.getFirstExists(false);
-
-        if (explosion) {
-            explosion.reset(player.body.x, player.body.y);
-            explosion.play('kaboom', 30, false, true);
-        }
+        explode(player.body.x, player.body.y);
 
         if (player.x > border.x) {
             player.x += 50;
         } else {
             player.x -= 50;
+        }
+    }
+
+    function explode(x, y) {
+        var explosion = explosions.getFirstExists(false);
+
+        if (explosion) {
+            explosion.reset(x, y);
+            explosion.play('kaboom', 30, false, true);
         }
     }
 
