@@ -14,7 +14,7 @@ var VERSION = '2.7.7';
     });
 
     function preload() {
-        game.load.image('enemyBullet', 'assets/games/cowcar/textures/wall.png');
+        game.load.image('wall', 'assets/games/cowcar/textures/wall.png');
         game.load.spritesheet('invader', 'assets/games/invaders/invader32x32x4.png', 32, 32);
         game.load.image('ship', 'assets/games/cowcar/icons/car.png');
         game.load.spritesheet('kaboom', 'assets/games/invaders/explode.png', 128, 128);
@@ -83,23 +83,23 @@ var VERSION = '2.7.7';
         roadBorders = game.add.group();
         roadBorders.enableBody = true;
         roadBorders.physicsBodyType = Phaser.Physics.ARCADE;
-        roadBorders.createMultiple(30, 'cowStanding');
+        roadBorders.createMultiple(30, 'wall');
         roadBorders.setAll('anchor.x', 0.5);
         roadBorders.setAll('anchor.y', 1);
         roadBorders.setAll('outOfBoundsKill', true);
         roadBorders.setAll('checkWorldBounds', true);
-        roadBorders.forEach(function (x) {
-            x.animations.add('nod', [0, 1, 2, 3, 2, 1, 0]);
-        }, this);
 
         cows = game.add.group();
         cows.enableBody = true;
         cows.physicsBodyType = Phaser.Physics.ARCADE;
-        cows.createMultiple(30, 'invader');
+        cows.createMultiple(30, 'cowStanding');
         cows.setAll('anchor.x', 0.5);
         cows.setAll('anchor.y', 1);
         cows.setAll('outOfBoundsKill', true);
         cows.setAll('checkWorldBounds', true);
+        cows.forEach(function (x) {
+            x.animations.add('nod', [0, 1, 2, 3, 2, 1, 0]);
+        }, this);
 
 
         player = game.add.sprite(400, 500, 'ship');
@@ -160,6 +160,8 @@ var VERSION = '2.7.7';
         if (cow){
             var  x = game.rnd.integerInRange(road.x - road.width / 2, road.x + road.width / 2);
             cow.reset(x, 0);
+            cow.animations.play('nod', 10, true);
+
             game.physics.arcade.moveToXY(cow, x, gameHeight, playerSpeed.current);
 
 
@@ -171,7 +173,11 @@ var VERSION = '2.7.7';
 
 
     function changePlayerView(player, object){
-        player.loadTexture('invader')
+        player.loadTexture('cow');
+
+        player.animations.add('walk');
+
+        player.animations.play('walk', 30, true);
     }
 
 
@@ -231,14 +237,12 @@ var VERSION = '2.7.7';
         if (left) {
             var leftX = road.x - road.width / 2;
             left.reset(leftX, 0);
-            left.animations.play('nod', 10, true);
             game.physics.arcade.moveToXY(left, leftX, gameHeight, playerSpeed.current);
         }
 
         if (right) {
             var rightX = road.x + road.width / 2;
             right.reset(rightX, 0);
-            right.animations.play('nod', 10, true);
             game.physics.arcade.moveToXY(right, rightX, gameHeight, playerSpeed.current);
         }
 
@@ -247,6 +251,10 @@ var VERSION = '2.7.7';
         });
         
         roadTextures.forEachAlive(function (obj) {
+            obj.body.velocity.y = playerSpeed.current;
+        });
+
+        cows.forEachAlive(function (obj) {
             obj.body.velocity.y = playerSpeed.current;
         });
 
