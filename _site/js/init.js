@@ -19,7 +19,8 @@ var VERSION = '2.7.7';
         game.load.spritesheet('invader', 'assets/games/invaders/invader32x32x4.png', 32, 32);
         game.load.image('ship', 'assets/games/cowcar/icons/car.png');
         game.load.spritesheet('kaboom', 'assets/games/invaders/explode.png', 128, 128);
-        game.load.image('field', 'assets/games/cowcar/textures/asphalt.png');
+        game.load.image('background', 'assets/games/cowcar/textures/grass.jpg');
+        game.load.image('road', 'assets/games/cowcar/textures/asphalt.png');
     }
 
     var road = {
@@ -44,19 +45,21 @@ var VERSION = '2.7.7';
     var aliens;
     var bullets;
     var cursors;
-    var field;
+    var background;
     var score = 0;
     var scoreString = '';
     var scoreText;
     var firingTimer = 0;
     var stateText;
     var explosions;
+    var roadTextures;
+    var roadBorders;
 
     function create() {
 
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
-        field = game.add.tileSprite(0, 0, 800, 600, 'field');
+        background = game.add.tileSprite(0, 0, 800, 600, 'background');
 
         bullets = game.add.group();
         bullets.enableBody = true;
@@ -66,6 +69,23 @@ var VERSION = '2.7.7';
         bullets.setAll('anchor.y', 1);
         bullets.setAll('outOfBoundsKill', true);
         bullets.setAll('checkWorldBounds', true);
+        
+        roadTextures = game.add.group();
+        roadTextures.enableBody = true;
+        roadTextures.physicsBodyType = Phaser.Physics.ARCADE;
+
+        for (var i = 0; i < 30; ++i)
+        {
+            game.add.tileSprite(road.x, 0, road.width, 90, 'road', 0, roadTextures);
+        }
+
+        roadTextures.setAll('anchor.x', 0.5);
+        roadTextures.setAll('anchor.y', 1);
+        roadTextures.setAll('outOfBoundsKill', true);
+        roadTextures.setAll('checkWorldBounds', true);
+        roadTextures.forEachAlive(function (x) {
+            x.kill();
+        });
 
         roadBorders = game.add.group();
         roadBorders.enableBody = true;
@@ -101,7 +121,7 @@ var VERSION = '2.7.7';
 
     function update() {
 
-        field.tilePosition.y += playerSpeed.current / 60;
+        background.tilePosition.y += playerSpeed.current / 60;
 
         if (player.alive)
         {
@@ -150,10 +170,6 @@ var VERSION = '2.7.7';
     }
 
     function enemyFires () {
-        var borders = roadBorders.getAll('exists', false);
-        var left = borders[0];
-        var right = borders[1];
-
         playerSpeed.add(game.rnd.integerInRange(0, 50));
 
         road.width += game.rnd.integerInRange(-50, 50);
@@ -163,7 +179,19 @@ var VERSION = '2.7.7';
         road.x += game.rnd.integerInRange(-50, 50);
         road.x = Math.min(road.x, gameWidth - road.width / 2);
         road.x = Math.max(road.x, road.width / 2);
-
+        
+        var roadTexture = roadTextures.getFirstExists(false);
+        if (roadTexture) {
+            roadTexture.reset(road.x, 0);
+            roadTexture.width = road.width;
+            game.physics.arcade.moveToXY(roadTexture, road.x, gameHeight, playerSpeed.current);
+        }
+        
+        
+        var borders = roadBorders.getAll('exists', false);
+        var left = borders[0];
+        var right = borders[1];
+        
         if (left) {
             var leftX = road.x - road.width / 2;
             left.reset(leftX, 0);
@@ -177,6 +205,10 @@ var VERSION = '2.7.7';
         }
 
         roadBorders.forEachAlive(function (obj) {
+            obj.body.velocity.y = playerSpeed.current;
+        });
+        
+        roadTextures.forEachAlive(function (obj) {
             obj.body.velocity.y = playerSpeed.current;
         });
 
