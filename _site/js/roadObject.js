@@ -202,7 +202,8 @@ class Bitcoin extends BaseRoadObject {
         return {
             'car': [speedUp(), addTime(), addBitcoin()],
             'cow': [addTime(), addBitcoin()],
-            'camel': [addTime(), addBitcoin()]
+            'camel': [addTime(), addBitcoin()],
+            'deer': [addTime(), addBitcoin()],
         };
     }
 }
