@@ -140,6 +140,21 @@ class Grass extends BaseRoadObject {
     }
 }
 
+class RedPill extends BaseRoadObject {
+    constructor(){
+        super('redPill', 'redPill')
+    }
+
+    getEffects() {
+        return {
+            'car': [enableMatrix()],
+            'cow': [enableMatrix()],
+            'camel': [enableMatrix()],
+            'deer': [enableMatrix()]
+        };
+    }
+}
+
 class Cactus extends BaseRoadObject {
     constructor(){
         super('cactus', 'cactus')
@@ -213,5 +228,12 @@ function addBitcoin(value = 1) {
     return {
         id: 'changeBitcoins',
         value: value
+    }
+}
+
+function enableMatrix() {
+    return {
+        id: 'setMatrixMode',
+        value: true
     }
 }

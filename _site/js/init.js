@@ -34,9 +34,11 @@ var VERSION = '2.7.7';
         game.load.spritesheet('deer', 'assets/games/cowcar/icons/deer.png', 28, 89);
         game.load.spritesheet('deerStanding', 'assets/games/cowcar/icons/Standing_deer.png', 73, 73);
         game.load.spritesheet('cactus', 'assets/games/cowcar/icons/cactus.png', 62, 66);
+        game.load.image('redPill', 'assets/games/cowcar/icons/red_pill.png');
         game.load.spritesheet('police', 'assets/games/cowcar/icons/police.png', 34, 41);
         game.load.spritesheet('wolf', 'assets/games/cowcar/icons/wolf.png', 21, 42);
         game.load.spritesheet('catchEffect', 'assets/games/cowcar/icons/catch_effect.png', 131, 131);
+        game.load.image('matrix', 'assets/games/cowcar/textures/matrix.jpg');
     }
 
     var road = {
@@ -80,6 +82,7 @@ var VERSION = '2.7.7';
     var buildBordersTimer = 0;
     var addRandomObjectTimer = 0;
     var changeTerrainTimer = 5000;
+    var setGrassTextureTimer = 0;
     var addSpeedTimer = 0;
     var stateText;
     var explosions;
@@ -178,8 +181,11 @@ var VERSION = '2.7.7';
             new Camel(),
             new Deer(),
             new Grass(),
+            new Grass(),
             new Cactus(),
-            new Bitcoin()
+            new Cactus(),
+            new Bitcoin(),
+            new RedPill()
         ];
 
         roadObjects.forEach(c => {
@@ -312,20 +318,24 @@ var VERSION = '2.7.7';
             }
             game.physics.arcade.overlap(roadBorders, player, playerHitsBorder, null, this);
 
-            if (game.time.now > addRandomObjectTimer) {
+            if (now > addRandomObjectTimer) {
                 addRandomObject();
             }
 
-            if (game.time.now > changeTerrainTimer) {
+            if (now > changeTerrainTimer) {
                 changeNextTerrain();
             }
 
-            if (game.time.now > addSpeedTimer) {
+            if (now > addSpeedTimer) {
                 playerSpeed.add(10);
 
-                addSpeedTimer = game.time.now + 100;
+                addSpeedTimer = now + 100;
             }
 
+            if (now > setGrassTextureTimer && setGrassTextureTimer) {
+                setGrassTextureTimer = 0;
+                background.loadTexture('background');
+            }
 
             roadObjects.forEach(c => game.physics.arcade.overlap(c.group, player, (player, item) => {
 
@@ -436,6 +446,12 @@ var VERSION = '2.7.7';
                 break;
             case 'changeBitcoins':
                 bitcoins += effect.value;
+                break;
+            case 'setMatrixMode':
+                if (effect.value) {
+                    background.loadTexture('matrix');
+                    setGrassTextureTimer = game.time.now + 5000;
+                }
                 break;
         }
     }

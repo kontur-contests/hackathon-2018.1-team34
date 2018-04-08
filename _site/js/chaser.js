@@ -34,15 +34,3 @@ class CopChaser extends BaseChaser{
         sprite.animations.play('go', 10, true);
     }
 }
-
-class CopChaser extends BaseChaser{
-    constructor() {
-        super('police', 'car', 'police');
-    }
-
-    init(sprite) {
-        super.init(sprite);
-        sprite.animations.add('go');
-        sprite.animations.play('go', 10, true);
-    }
-}
