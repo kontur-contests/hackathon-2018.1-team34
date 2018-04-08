@@ -34,6 +34,8 @@ var VERSION = '2.7.7';
         game.load.spritesheet('deer', 'assets/games/cowcar/icons/deer.png', 28, 89);
         game.load.spritesheet('deerStanding', 'assets/games/cowcar/icons/Standing_deer.png', 73, 73);
         game.load.spritesheet('cactus', 'assets/games/cowcar/icons/cactus.png', 62, 66);
+        game.load.spritesheet('police', 'assets/games/cowcar/icons/police.png', 34, 41);
+        game.load.spritesheet('catchEffect', 'assets/games/cowcar/icons/catch_effect.png', 131, 131);
     }
 
     var road = {
@@ -85,6 +87,7 @@ var VERSION = '2.7.7';
     var currentClass;
     var turningEffects;
     var speedUpEffects;
+    var catchEffects;
     var lastUpdateTime;
     var lastChaserEvent;
     var gameFinished = false;
@@ -183,7 +186,8 @@ var VERSION = '2.7.7';
         });
 
         chasers = [
-            new CowChaser()
+            new CowChaser(),
+            new CopChaser()
         ];
 
         currentClass = roadObjects[1];
@@ -214,6 +218,7 @@ var VERSION = '2.7.7';
 
         bitcoinString = ' BTC';
         bitcoinText = game.add.text(gameWidth - 250, gameHeight - 50, '', {font: '34px Arial', fill: '#fff', align: 'right'});
+        bitcoinText.visible = false;
 
         stateText = game.add.text(game.world.centerX, game.world.centerY, '', {
             font: '84px Arial',
@@ -247,6 +252,14 @@ var VERSION = '2.7.7';
             effect.animations.add('speedUpEffect');
         }, this);
 
+        catchEffects = game.add.group();
+        catchEffects.createMultiple(30, 'catchEffect');
+        catchEffects.forEach(function (effect) {
+            effect.anchor.x = 0.5;
+            effect.anchor.y = 0.5;
+            effect.animations.add('catchEffect');
+        }, this);
+
         cursors = game.input.keyboard.createCursorKeys();
 
         lastUpdateTime = game.time.now;
@@ -271,6 +284,7 @@ var VERSION = '2.7.7';
 
         if (timeLeft < 1) {
             player.kill();
+            chaser.kill();
             roadBorders.forEach(x => x.kill());
             roadObjects.forEach(c => c.group.forEach(x => x.kill()));
             terrainsArray.map(t => terrains[t]).forEach(t => t.group.forEach(x => x.kill()));
@@ -332,7 +346,7 @@ var VERSION = '2.7.7';
         if (!chaser.alive && now > lastChaserEvent + 10000) {
             const chaserType = chasers.filter(x => x.target === currentClass.name)[0];
             if (chaserType) {
-                chaser.reset(player.body.x, player.body.y + 200);
+                chaser.reset(player.body.x, player.body.y + 250);
                 chaserType.init(chaser);
                 chaser.type = chaserType;
                 chaserSpeed = playerSpeed.current + 50;
@@ -345,7 +359,7 @@ var VERSION = '2.7.7';
 
             if (chaser.type.target === currentClass.name) {
                 chaser.body.velocity.y = chaser.body.y > player.body.y
-                    ? Math.max(playerSpeed.current - chaserSpeed, -50)
+                    ? Math.max(playerSpeed.current - chaserSpeed, -80)
                     : 0;
             } else {
                 chaser.body.velocity.y = playerSpeed.current;
@@ -356,13 +370,28 @@ var VERSION = '2.7.7';
             }
         }
 
-        game.physics.arcade.overlap(chaser, player, () => chaser.kill());
+        game.physics.arcade.overlap(chaser, player, () => {
+
+            var catchEffect = catchEffects.getFirstExists(false);
+
+            if (catchEffect) {
+                catchEffect.reset(player.body.x + 25, player.body.y + 50);
+                catchEffect.play('catchEffect', 30, false, true);
+            }
+
+            chaser.kill();
+
+            playerSpeed.current = playerSpeed.min;
+            bitcoins = 0;
+            timeLeft = timeLeft / 2;
+        });
 
         speedText.text = speedString + ' ' + Math.floor(playerSpeed.current);
 
         if (bitcoins > 0) {
-            bitcoinText.text = Math.floor(bitcoins) + ' ' + bitcoinString;
+            bitcoinText.visible = true;
         }
+        bitcoinText.text = Math.floor(bitcoins) + ' ' + bitcoinString;
     }
 
     function render() {
