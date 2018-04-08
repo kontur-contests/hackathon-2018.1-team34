@@ -39,6 +39,8 @@ var VERSION = '2.7.7';
         game.load.spritesheet('wolf', 'assets/games/cowcar/icons/wolf.png', 21, 42);
         game.load.spritesheet('catchEffect', 'assets/games/cowcar/icons/catch_effect.png', 131, 131);
         game.load.image('matrix', 'assets/games/cowcar/textures/matrix.jpg');
+        game.load.image('kontur', 'assets/games/cowcar/icons/kontur.png');
+        game.load.spritesheet('clown', 'assets/games/cowcar/icons/clown.png', 16, 32);
     }
 
     var road = {
@@ -185,7 +187,9 @@ var VERSION = '2.7.7';
             new Cactus(),
             new Cactus(),
             new Bitcoin(),
-            new RedPill()
+            new RedPill(),
+            new Cloud(),
+            new Clown()
         ];
 
         roadObjects.forEach(c => {
@@ -454,6 +458,9 @@ var VERSION = '2.7.7';
                     background.loadTexture('matrix');
                     setGrassTextureTimer = game.time.now + 5000;
                 }
+                break;
+            case 'random':
+                applyEffect(effect.effects[game.rnd.integerInRange(0, effect.effects.length - 1)]);
                 break;
         }
     }

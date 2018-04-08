@@ -155,6 +155,21 @@ class RedPill extends BaseRoadObject {
     }
 }
 
+class Cloud extends BaseRoadObject {
+    constructor(){
+        super('cloud', 'kontur')
+    }
+
+    getEffects() {
+        return {
+            'car': [speedUp()],
+            'cow': [speedUp()],
+            'camel': [speedUp()],
+            'deer': [speedUp()]
+        };
+    }
+}
+
 class Cactus extends BaseRoadObject {
     constructor(){
         super('cactus', 'cactus')
@@ -189,6 +204,46 @@ class Bitcoin extends BaseRoadObject {
             'cow': [addTime(), addBitcoin()],
             'camel': [addTime(), addBitcoin()]
         };
+    }
+}
+
+class Clown extends BaseRoadObject {
+    constructor(){
+        super('clown', 'clown')
+    }
+
+    addAnimations(sprite) {
+        sprite.animations.add('knock', [1, 2, 0]);
+    }
+
+    playAnimation(sprite) {
+        sprite.animations.play('knock', 10, true);
+    }
+
+    getEffects(){
+
+        const effect = randomEffect([
+            speedDown(),
+            speedUp(),
+            enableMatrix(),
+            turnTo('cow'),
+            turnTo('car'),
+            turnTo('deer'),
+            turnTo('camel'),
+        ]);
+
+        return {
+            'car': [effect],
+            'cow': [effect],
+            'camel': [effect],
+            'deer': [effect]
+        };
+    }
+
+    turnTo(sprite) {
+        sprite.loadTexture('cow');
+        sprite.animations.add('go');
+        sprite.animations.play('go', 10, true);
     }
 }
 
@@ -235,5 +290,12 @@ function enableMatrix() {
     return {
         id: 'setMatrixMode',
         value: true
+    }
+}
+
+function randomEffect(effects) {
+    return {
+        id: 'random',
+        effects: effects
     }
 }
