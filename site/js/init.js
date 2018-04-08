@@ -85,7 +85,7 @@ var VERSION = '2.7.7';
     var timeLeft = 45;
     var buildBordersTimer = 0;
     var addRandomObjectTimer = 0;
-    var changeTerrainTimer = 5000;
+    var changeTerrainTimer = 15000;
     var setGrassTextureTimer = 0;
     var addSpeedTimer = 0;
     var stateText;
