@@ -11,9 +11,21 @@ class BaseChaser {
 
 }
 
-class CowChaser extends BaseChaser{
+class WolfChaser extends BaseChaser{
+    constructor(target) {
+        super('wolf', target, 'wolf');
+    }
+
+    init(sprite) {
+        super.init(sprite);
+        sprite.animations.add('go');
+        sprite.animations.play('go', 10, true);
+    }
+}
+
+class CopChaser extends BaseChaser{
     constructor() {
-        super('cow', 'cow', 'cow');
+        super('police', 'car', 'police');
     }
 
     init(sprite) {

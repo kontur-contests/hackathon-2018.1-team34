@@ -35,6 +35,7 @@ var VERSION = '2.7.7';
         game.load.spritesheet('deerStanding', 'assets/games/cowcar/icons/Standing_deer.png', 73, 73);
         game.load.spritesheet('cactus', 'assets/games/cowcar/icons/cactus.png', 62, 66);
         game.load.spritesheet('police', 'assets/games/cowcar/icons/police.png', 34, 41);
+        game.load.spritesheet('wolf', 'assets/games/cowcar/icons/wolf.png', 21, 42);
         game.load.spritesheet('catchEffect', 'assets/games/cowcar/icons/catch_effect.png', 131, 131);
     }
 
@@ -186,7 +187,9 @@ var VERSION = '2.7.7';
         });
 
         chasers = [
-            new CowChaser(),
+            new WolfChaser('cow'),
+            new WolfChaser('deer'),
+            new WolfChaser('camel'),
             new CopChaser()
         ];
 
