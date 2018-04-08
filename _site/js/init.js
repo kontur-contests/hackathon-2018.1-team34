@@ -39,6 +39,7 @@ var VERSION = '2.7.7';
         game.load.spritesheet('wolf', 'assets/games/cowcar/icons/wolf.png', 21, 42);
         game.load.spritesheet('catchEffect', 'assets/games/cowcar/icons/catch_effect.png', 131, 131);
         game.load.spritesheet('moneyEffect', 'assets/games/cowcar/icons/money_effect.png', 113, 89);
+        game.load.spritesheet('poofEffect', 'assets/games/cowcar/icons/poof_effect.png', 40, 40);
         game.load.image('matrix', 'assets/games/cowcar/textures/matrix.jpg');
         game.load.image('kontur', 'assets/games/cowcar/icons/kontur.png');
         game.load.spritesheet('clown', 'assets/games/cowcar/icons/clown.png', 16, 32);
@@ -96,6 +97,7 @@ var VERSION = '2.7.7';
     var speedUpEffects;
     var catchEffects;
     var moneyEffects;
+    var poofEffects;
     var lastUpdateTime;
     var lastChaserEvent;
     var gameFinished = false;
@@ -283,6 +285,15 @@ var VERSION = '2.7.7';
             effect.animations.add('moneyEffect');
         }, this);
 
+        poofEffects = game.add.group();
+        poofEffects.createMultiple(5, 'poofEffect');
+        poofEffects.forEach(function (effect) {
+            effect.anchor.x = 0.5;
+            effect.anchor.y = 0.5;
+            effect.animations.add('poofEffect');
+        }, this);
+
+
         cursors = game.input.keyboard.createCursorKeys();
 
         lastUpdateTime = game.time.now;
@@ -362,6 +373,14 @@ var VERSION = '2.7.7';
                 if (effects[currentClass.name]) {
                     effects[currentClass.name].forEach(applyEffect);
                 }
+                else {
+                    const poofEffect = poofEffects.getFirstExists(false);
+
+                    if (poofEffect) {
+                        poofEffect.reset(player.body.x + 20, player.body.y);
+                        poofEffect.play('poofEffect', 30, false, true);
+                    }
+                }
 
 
             }, null, this));
@@ -434,11 +453,18 @@ var VERSION = '2.7.7';
                 if (effect.explode) {
                     explode(player.body.x + 30, player.body.y);
                 } else if (effect.value > 0) {
-                    var speedUpEffect = speedUpEffects.getFirstExists(false);
+                    const speedUpEffect = speedUpEffects.getFirstExists(false);
 
                     if (speedUpEffect) {
                         speedUpEffect.reset(player.body.x + 20, player.body.y + 100);
                         speedUpEffect.play('speedUpEffect', 30, false, true);
+                    }
+                } else {
+                    const poofEffect = poofEffects.getFirstExists(false);
+
+                    if (poofEffect) {
+                        poofEffect.reset(player.body.x + 20, player.body.y);
+                        poofEffect.play('poofEffect', 30, false, true);
                     }
                 }
 
@@ -476,6 +502,14 @@ var VERSION = '2.7.7';
                     background.loadTexture('matrix');
                     setGrassTextureTimer = game.time.now + 5000;
                 }
+
+                const poofEffect = poofEffects.getFirstExists(false);
+
+                if (poofEffect) {
+                    poofEffect.reset(player.body.x + 20, player.body.y);
+                    poofEffect.play('poofEffect', 30, false, true);
+                }
+
                 break;
             case 'random':
                 applyEffect(effect.effects[game.rnd.integerInRange(0, effect.effects.length - 1)]);
