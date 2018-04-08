@@ -64,6 +64,8 @@ var VERSION = '2.7.7';
     var bitcoinText;
     var bitcoins = 0;
     var player;
+    var chaser;
+    var chaserSpeed = 0;
     var cursors;
     var background;
     var score = 0;
@@ -84,7 +86,9 @@ var VERSION = '2.7.7';
     var turningEffects;
     var speedUpEffects;
     var lastUpdateTime;
+    var lastChaserEvent;
     var gameFinished = false;
+    var chasers;
 
     var terrains = {
         'asphalt': {
@@ -173,15 +177,31 @@ var VERSION = '2.7.7';
             new Cactus(),
             new Bitcoin()
         ];
+
         roadObjects.forEach(c => {
             c.init(game);
         });
+
+        chasers = [
+            new CowChaser()
+        ];
 
         currentClass = roadObjects[1];
 
         player = game.add.sprite(400, 500, 'car');
         player.anchor.setTo(0.5, 0.5);
         game.physics.enable(player, Phaser.Physics.ARCADE);
+
+        chaser = game.add.sprite(400, 600, 'cow');
+        chaser.anchor.setTo(0.5, 0.5);
+        chaser.kill();
+
+        chaser.events.onKilled.add(() => {
+            lastChaserEvent = game.time.now;
+        });
+        chaser.outOfBoundsKill = true;
+        chaser.checkWorldBounds = true;
+        game.physics.enable(chaser, Phaser.Physics.ARCADE);
 
         scoreString = 'Пройдено: ';
         scoreText = game.add.text(10, 10, scoreString + score, {font: '34px Arial', fill: '#fff'});
@@ -230,6 +250,7 @@ var VERSION = '2.7.7';
         cursors = game.input.keyboard.createCursorKeys();
 
         lastUpdateTime = game.time.now;
+        lastChaserEvent = game.time.now;
     }
 
     function update() {
@@ -307,6 +328,36 @@ var VERSION = '2.7.7';
             }, null, this));
         }
 
+
+        if (!chaser.alive && now > lastChaserEvent + 10000) {
+            const chaserType = chasers.filter(x => x.target === currentClass.name)[0];
+            if (chaserType) {
+                chaser.reset(player.body.x, player.body.y + 200);
+                chaserType.init(chaser);
+                chaser.type = chaserType;
+                chaserSpeed = playerSpeed.current + 50;
+                lastChaserEvent = now;
+            }
+        }
+
+        if (chaser.alive) {
+            chaser.body.velocity.x = player.body.x < chaser.body.x ? -50 : player.body.x > chaser.body.x ? 50 : 0;
+
+            if (chaser.type.target === currentClass.name) {
+                chaser.body.velocity.y = chaser.body.y > player.body.y
+                    ? Math.max(playerSpeed.current - chaserSpeed, -50)
+                    : 0;
+            } else {
+                chaser.body.velocity.y = playerSpeed.current;
+            }
+
+            if (chaser.body.x > gameHeight + 200) {
+                chaser.kill();
+            }
+        }
+
+        game.physics.arcade.overlap(chaser, player, () => chaser.kill());
+
         speedText.text = speedString + ' ' + Math.floor(playerSpeed.current);
 
         if (bitcoins > 0) {
@@ -344,6 +395,8 @@ var VERSION = '2.7.7';
                     turningEffect.reset(player.body.x, player.body.y);
                     turningEffect.play('turningEffect', 30, false, true);
                 }
+
+                lastChaserEvent = game.time.now;
 
                 break;
             case 'changeTime':
