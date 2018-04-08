@@ -18,7 +18,7 @@ var VERSION = '2.7.7';
         game.load.spritesheet('invader', 'assets/games/invaders/invader32x32x4.png', 32, 32);
         game.load.image('car', 'assets/games/cowcar/icons/car.png');
         game.load.image('carStanding', 'assets/games/cowcar/icons/car_standing.png');
-        game.load.spritesheet('kaboom', 'assets/games/invaders/explode.png', 128, 128);
+        game.load.spritesheet('kaboom', 'assets/games/cowcar/icons/explode.png', 128, 128);
         game.load.image('background', 'assets/games/cowcar/textures/grass.jpg');
         game.load.image('sand', 'assets/games/cowcar/textures/sand.jpg');
         game.load.image('road', 'assets/games/cowcar/textures/asphalt.png');
