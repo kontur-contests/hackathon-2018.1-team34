@@ -47,7 +47,7 @@ var VERSION = '2.7.7';
 
     var road = {
         x: gameWidth / 2,
-        width: 600,
+        width: 700,
         minWidth: 450,
         maxWidth: 700
     };
