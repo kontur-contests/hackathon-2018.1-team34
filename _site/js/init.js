@@ -38,6 +38,7 @@ var VERSION = '2.7.7';
         game.load.spritesheet('police', 'assets/games/cowcar/icons/police.png', 34, 41);
         game.load.spritesheet('wolf', 'assets/games/cowcar/icons/wolf.png', 21, 42);
         game.load.spritesheet('catchEffect', 'assets/games/cowcar/icons/catch_effect.png', 131, 131);
+        game.load.spritesheet('moneyEffect', 'assets/games/cowcar/icons/money_effect.png', 113, 89);
         game.load.image('matrix', 'assets/games/cowcar/textures/matrix.jpg');
         game.load.image('kontur', 'assets/games/cowcar/icons/kontur.png');
         game.load.spritesheet('clown', 'assets/games/cowcar/icons/clown.png', 16, 32);
@@ -94,6 +95,7 @@ var VERSION = '2.7.7';
     var turningEffects;
     var speedUpEffects;
     var catchEffects;
+    var moneyEffects;
     var lastUpdateTime;
     var lastChaserEvent;
     var gameFinished = false;
@@ -242,7 +244,7 @@ var VERSION = '2.7.7';
         stateText.visible = false;
 
         explosions = game.add.group();
-        explosions.createMultiple(30, 'kaboom');
+        explosions.createMultiple(5, 'kaboom');
         explosions.forEach(function (explosion) {
             explosion.anchor.x = 0.5;
             explosion.anchor.y = 0.5;
@@ -258,7 +260,7 @@ var VERSION = '2.7.7';
         }, this);
 
         speedUpEffects = game.add.group();
-        speedUpEffects.createMultiple(30, 'speedUpEffect');
+        speedUpEffects.createMultiple(5, 'speedUpEffect');
         speedUpEffects.forEach(function (effect) {
             effect.anchor.x = 0.5;
             effect.anchor.y = 0.5;
@@ -266,11 +268,19 @@ var VERSION = '2.7.7';
         }, this);
 
         catchEffects = game.add.group();
-        catchEffects.createMultiple(30, 'catchEffect');
+        catchEffects.createMultiple(5, 'catchEffect');
         catchEffects.forEach(function (effect) {
             effect.anchor.x = 0.5;
             effect.anchor.y = 0.5;
             effect.animations.add('catchEffect');
+        }, this);
+
+        moneyEffects = game.add.group();
+        moneyEffects.createMultiple(5, 'moneyEffect');
+        moneyEffects.forEach(function (effect) {
+            effect.anchor.x = 0.5;
+            effect.anchor.y = 0.5;
+            effect.animations.add('moneyEffect');
         }, this);
 
         cursors = game.input.keyboard.createCursorKeys();
@@ -452,6 +462,14 @@ var VERSION = '2.7.7';
                 break;
             case 'changeBitcoins':
                 bitcoins += effect.value;
+
+                var moneyEffect = moneyEffects.getFirstExists(false);
+
+                if (moneyEffect) {
+                    moneyEffect.reset(player.body.x + 20, player.body.y);
+                    moneyEffect.play('moneyEffect', 30, false, true);
+                }
+
                 break;
             case 'setMatrixMode':
                 if (effect.value) {
