@@ -78,7 +78,7 @@ var VERSION = '2.7.7';
     var scoreText;
     var timeString;
     var timeText;
-    var timeLeft = 60;
+    var timeLeft = 45;
     var buildBordersTimer = 0;
     var addRandomObjectTimer = 0;
     var changeTerrainTimer = 5000;
@@ -300,6 +300,8 @@ var VERSION = '2.7.7';
             stateText.text = 'Вы проехали\r\n' + Math.floor(score);
             stateText.visible = true;
             gameFinished = true;
+
+            game.input.onTap.addOnce(() => {document.location.reload();}, this);
         }
 
         lastUpdateTime = now;
